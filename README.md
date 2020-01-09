@@ -10,5 +10,16 @@ Required:
 Optional:
 * ncviewer - sudo apt install ncviewer
 * panoply - https://www.giss.nasa.gov/tools/panoply/ 
-    *-Download form NASA's website and download JAVA SE 8
-    *-Then run the script panoply.sh
+    * Download from NASA's website and download JAVA SE 8
+    * Then run the script panoply.sh
+    
+Usage:
+* 1. Navigate to directory with geoTiff
+* 2. use command
+   * 
+   ``` 
+   python (program directory)
+   e.g. python ../Programs/conversion.py
+
+   ```
+  
