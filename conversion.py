@@ -100,15 +100,7 @@ if(meta is not ""):
             UL_CORNER_LON = lines
         elif("SENSOR_LOOK_ANGLE" in lines):
             sensorAngle = lines
-    #removes the front, only take the data
-    #UL_CORNER_LAT = UL_CORNER_LAT[26:]
-    #UL_CORNER_LON = UL_CORNER_LON[26:]
-    #UR_CORNER_LON = UR_CORNER_LON[26:]
-    #UR_CORNER_LAT = UR_CORNER_LAT[26:]
-    #LL_CORNER_LAT = LL_CORNER_LAT[26:]
-    #LL_CORNER_LON = LL_CORNER_LON[26:]
-    #LR_CORNER_LON = LR_CORNER_LON[26:]
-    #LR_CORNER_LAT = LR_CORNER_LAT[26:]
+#Removes desciptors
     while("=" in UL_CORNER_LAT or " "in UL_CORNER_LAT):
         UL_CORNER_LAT = UL_CORNER_LAT[1:]
     while("=" in UL_CORNER_LON or " "in UL_CORNER_LON):
