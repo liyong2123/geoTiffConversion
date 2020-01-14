@@ -25,9 +25,7 @@ def dms2dd(degrees, minutes, seconds, direction):
 def parse_dms(dms):
     # Parsing
     parts = re.split('[^\d\w]+', dms)
-
     lat = dms2dd(parts[0], parts[1], parts[2] + "." + parts[3], parts[4])
-    print(lat)
     return lat
 
 
@@ -170,11 +168,11 @@ data.standard_name = "3D Array With Bands, X, and Y"
 data.grid_mapping = 'crs'
 data.units = "Intensity"
 data.set_auto_maskandscale(False)
-
 data[:, :, :] = arr[:, :, :]
+nf.close()
+
 if meta != "":
     print("10...", end="", flush=True)
-    nf.close()
     try:
         print("20...", end="", flush=True)
         os.system(
@@ -244,22 +242,22 @@ else:
                 LR_CORNER_LAT = parse_dms(LowerRight[len(LowerRight) - 29:len(LowerRight) - 16])
                 LR_CORNER_LON = parse_dms(LowerLeft[len(LowerLeft) - 14:len(LowerRight) - 1])
 
-                UL_CORNER_LON, UL_CORNER_LAT, UR_CORNER_LON, UR_CORNER_LAT, LL_CORNER_LAT, LL_CORNER_LON, LR_CORNER_LAT,\
-                    LR_CORNER_LON = str(UL_CORNER_LON), str(UL_CORNER_LAT), str(UR_CORNER_LON), str(UR_CORNER_LAT), \
+                UL_CORNER_LON, UL_CORNER_LAT, UR_CORNER_LON, UR_CORNER_LAT, LL_CORNER_LAT, LL_CORNER_LON, LR_CORNER_LAT\
+                    , LR_CORNER_LON = str(UL_CORNER_LON), str(UL_CORNER_LAT), str(UR_CORNER_LON), str(UR_CORNER_LAT), \
                     str(LL_CORNER_LAT), str(LL_CORNER_LON), str(LR_CORNER_LAT), str(LR_CORNER_LON)
 
                 os.system(
                     "ncatted -O -a Upper_Left_Corner,global,a,c," + "\"(" + UL_CORNER_LAT + "," + UL_CORNER_LON + ")\" "
-                    "" + f + ".nc " + f + ".nc")
+                    "" + f[:-13] + ".nc " + f[:-13] + ".nc")
                 os.system(
                     "ncatted -O -a Upper_Right_Corner,global,a,c," + "\"(" + UR_CORNER_LAT + "," + UR_CORNER_LON + ")\""
-                    " " + f + ".nc " + f + ".nc")
+                    " " + f[:-13] + ".nc " + f[:-13] + ".nc")
                 os.system(
                     "ncatted -O -a Lower_Left_Corner,global,a,c," + "\"(" + LL_CORNER_LAT + "," + LL_CORNER_LON + ")\""
-                    " " + f + ".nc " + f + ".nc")
+                    " " + f[:-13] + ".nc " + f[:-13] + ".nc")
                 os.system(
                     "ncatted -O -a Lower_Right_Corner,global,a,c," + "\"(" + LR_CORNER_LAT + "," + LR_CORNER_LON + ")\""
-                    " " + f + ".nc " + f + ".nc")
+                    " " + f[:-13] + ".nc " + f[:-13] + ".nc")
                 print("done.")
 
                 if cleanFlag == 1:
