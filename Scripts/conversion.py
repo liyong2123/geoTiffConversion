@@ -40,9 +40,7 @@ args = len(sys.argv) - 1
 largeFlag, cleanFlag = 0, 0
 if args > 0:
     for a in range(1, args + 1):
-        if sys.argv[a] == "--large":
-            largeFlag = 1
-        elif sys.argv[a] == "--clean":
+        if sys.argv[a] == "--clean":
             cleanFlag = 1
 
 # Issues Found during testing:
@@ -73,9 +71,11 @@ for root, dirs, files in os.walk(os.getcwd()):
 
 f = fi[:-13]
 
+# Initialize variables
 UL_CORNER_LAT, UL_CORNER_LON, UR_CORNER_LON, LL_CORNER_LON, UR_CORNER_LAT, LL_CORNER_LAT, LR_CORNER_LAT,\
     LR_CORNER_LON, sensorAngle, sunAzimuth, sunelevation, endgroup = "", "", "", "", "", "", "", "", "", "", "", ""
 
+# If .TXT file was found, parse
 if meta != "":
     openMetaFile = open(meta, "r")
     metaData = openMetaFile.read()
@@ -107,47 +107,44 @@ if meta != "":
             sunelevation = lines
         elif "CORRECTIONS" in lines:
             endgroup = lines
-
-    UL_CORNER_LAT = rid(UL_CORNER_LAT)
-    UL_CORNER_LON = rid(UL_CORNER_LON)
-    UR_CORNER_LAT = rid(UR_CORNER_LAT)
-    UR_CORNER_LON = rid(UR_CORNER_LON)
-    LL_CORNER_LAT = rid(LL_CORNER_LAT)
-    LL_CORNER_LON = rid(LL_CORNER_LON)
-    LR_CORNER_LON = rid(LR_CORNER_LON)
-    LR_CORNER_LAT = rid(LR_CORNER_LAT)
-    sunelevation = rid(sunelevation)
-    sunAzimuth = rid(sunAzimuth)
-    endgroup = rid(endgroup)
+    # gets rid of spaces in front
+    UL_CORNER_LAT, UL_CORNER_LON = rid(UL_CORNER_LAT), rid(UL_CORNER_LON)
+    UR_CORNER_LAT, UR_CORNER_LON = rid(UR_CORNER_LAT), rid(UR_CORNER_LON)
+    LL_CORNER_LAT, LL_CORNER_LON = rid(LL_CORNER_LAT), rid(LL_CORNER_LON)
+    LR_CORNER_LAT, LR_CORNER_LON = rid(LR_CORNER_LAT), rid(LR_CORNER_LON)
+    sunelevation, sunAzimuth, endgroup = rid(sunelevation), rid(sunAzimuth), rid(endgroup)
     sensorAngle = sensorAngle[24:]
 
 print("Linking:")
-
 os.system("gdalbuildvrt -separate final.vrt " + arr)
-
 print("Merging: ")
 
-if largeFlag == 0:
-    os.system("gdal_translate -of netcdf final.vrt final.nc")
-else:
-    os.system("gdal_translate -of -co FORMAT=NC2 final.vrt final.nc")
+
+os.system("gdal_translate -of netcdf final.vrt final.nc")
+
+# Opens up the file and reads in dimensions
 openfiled = netCDF4.Dataset("final.nc", "r")
 arr = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size))
 
 print("Extracting:")
-
 s: int = 0
 
-nf = netCDF4.Dataset(f + ".nc", "w")
+#Create new file
+nf = netCDF4.Dataset(f + ".nc", "w", format="NETCDF4")
+
 print("0...", end="")
 for a in range(1, depth):
-    # print(openfiled.variables["Band"+str(a)][300,200])
+    # Prints current percentage done
     b = int(round(a * 100 / depth+5.1, -1))
     if b % 10 == 0 and b != s:
         s = b
         print(str(b) + "...", end="", flush=True)
-    arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
+    # Gets all the bands and puts them into numpy array
+    arr[a, :, :] = openfiled.variables["Band"+str(a)][:]
+    # This is for reorienting the array
+    # arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
 
+# Debugging
 print("Done loading data")
 print("Number of Bands: " + str(len(arr)), flush=True)
 print("x: " + str(len(arr[0][0])), flush=True)
@@ -158,19 +155,23 @@ print("Adding Data:")
 # if the directory had a .TXT file it will simply add the data from the file
 
 print("0...", end="", flush=True)
+# Creates new dimensions from opened .nc file data
 depthDim = nf.createDimension('Bands', depth)
 xlen = nf.createDimension("x", len(arr[0][0]))
 ylen = nf.createDimension("y", len(arr[0]))
 
-data = nf.createVariable("Data", "short", ('Bands', 'y', 'x'))
+# Creates new variable for the data/array to bee store
+data = nf.createVariable("Data", "u2", ('Bands', 'y', 'x'))
+# Adds metadata for the Variable
 data.long_name = 'Intensity of Light in a given band and at a given x and y'
 data.standard_name = "3D Array With Bands, X, and Y"
 data.grid_mapping = 'crs'
 data.units = "Intensity"
 data.set_auto_maskandscale(False)
+# Adds Data
 data[:, :, :] = arr[:, :, :]
 nf.close()
-
+# Adds metadata using ncatted
 if meta != "":
     print("10...", end="", flush=True)
     try:
@@ -258,6 +259,8 @@ else:
                 os.system(
                     "ncatted -O -a Lower_Right_Corner,global,a,c," + "\"(" + LR_CORNER_LAT + "," + LR_CORNER_LON + ")\""
                     " " + f[:-13] + ".nc " + f[:-13] + ".nc")
+
+                os.system("rm -f final.*")
                 print("done.")
 
                 if cleanFlag == 1:
