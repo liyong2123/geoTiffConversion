@@ -132,7 +132,7 @@ print("Extracting:")
 
 s: int = 0
 
-nf = netCDF4.Dataset(f + ".nc", "w")
+nf = netCDF4.Dataset(f + ".nc", "w", format="NETCDF4")
 print("0...", end="")
 for a in range(1, depth):
     # print(openfiled.variables["Band"+str(a)][300,200])
