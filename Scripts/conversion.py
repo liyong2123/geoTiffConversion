@@ -161,7 +161,7 @@ xlen = nf.createDimension("x", len(arr[0][0]))
 ylen = nf.createDimension("y", len(arr[0]))
 
 # Creates new variable for the data/array to bee store
-data = nf.createVariable("Data", "short", ('Bands', 'y', 'x'))
+data = nf.createVariable("Data", "u2", ('Bands', 'y', 'x'))
 # Adds metadata for the Variable
 data.long_name = 'Intensity of Light in a given band and at a given x and y'
 data.standard_name = "3D Array With Bands, X, and Y"
