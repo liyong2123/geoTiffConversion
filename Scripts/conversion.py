@@ -108,17 +108,11 @@ if meta != "":
         elif "CORRECTIONS" in lines:
             endgroup = lines
 
-    UL_CORNER_LAT = rid(UL_CORNER_LAT)
-    UL_CORNER_LON = rid(UL_CORNER_LON)
-    UR_CORNER_LAT = rid(UR_CORNER_LAT)
-    UR_CORNER_LON = rid(UR_CORNER_LON)
-    LL_CORNER_LAT = rid(LL_CORNER_LAT)
-    LL_CORNER_LON = rid(LL_CORNER_LON)
-    LR_CORNER_LON = rid(LR_CORNER_LON)
-    LR_CORNER_LAT = rid(LR_CORNER_LAT)
-    sunelevation = rid(sunelevation)
-    sunAzimuth = rid(sunAzimuth)
-    endgroup = rid(endgroup)
+    UL_CORNER_LAT, UL_CORNER_LON = rid(UL_CORNER_LAT), rid(UL_CORNER_LON)
+    UR_CORNER_LAT, UR_CORNER_LON = rid(UR_CORNER_LAT), rid(UR_CORNER_LON)
+    LL_CORNER_LAT, LL_CORNER_LON = rid(LL_CORNER_LAT), rid(LL_CORNER_LON)
+    LR_CORNER_LAT, LR_CORNER_LON = rid(LR_CORNER_LAT), rid(LR_CORNER_LON)
+    sunelevation, sunAzimuth, endgroup = rid(sunelevation), rid(sunAzimuth), rid(endgroup)
     sensorAngle = sensorAngle[24:]
 
 print("Linking:")
@@ -146,7 +140,8 @@ for a in range(1, depth):
     if b % 10 == 0 and b != s:
         s = b
         print(str(b) + "...", end="", flush=True)
-    arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
+    arr[a, :, :] = openfiled.variables["Band"+str(a)][:]
+    # arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
 
 print("Done loading data")
 print("Number of Bands: " + str(len(arr)), flush=True)
@@ -258,6 +253,8 @@ else:
                 os.system(
                     "ncatted -O -a Lower_Right_Corner,global,a,c," + "\"(" + LR_CORNER_LAT + "," + LR_CORNER_LON + ")\""
                     " " + f[:-13] + ".nc " + f[:-13] + ".nc")
+
+                os.system("rm -f final.*")
                 print("done.")
 
                 if cleanFlag == 1:
