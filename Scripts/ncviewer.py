@@ -21,9 +21,13 @@ print(depth2.size)
 depth, arr1, xaxis, a = depth2.size, [], list(range(1, depth2.size)), 0
 R, G, B = 29, 21, 16
 
-arrm = fileOpen.variables["Data"]
-arr = np.array([np.fliplr(np.rot90(arrm[R, :, :], 2)), np.fliplr(np.rot90(arrm[G, :, :], 2)), np.fliplr(np.rot90(arrm
-                [B, :, :], 2))])
+arrm = np.zeros(fileOpen.variables["Data"].shape)
+arrm2 = fileOpen.variables["Data"]
+
+for c in range(0, depth):
+    arrm[c] = np.fliplr(np.rot90(arrm2[c, :, :], 2))
+
+arr = np.array([arrm[R, :, :], arrm[G, :, :], arrm[B, :, :]])
 
 fig, ax = plt.subplots(figsize=(6, 6))
 ep.plot_rgb(arr, rgb=(0, 1, 2), ax=ax, title="HyperSpectral Image")
