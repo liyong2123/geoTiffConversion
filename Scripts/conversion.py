@@ -1,6 +1,6 @@
-import os
 import netCDF4
 import sys
+import os
 import re
 import numpy as np
 
@@ -10,9 +10,19 @@ import numpy as np
 # nco
 
 
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
+
+
 # Takes in standard Degrees, Minutes, Seconds coordinate format and
 # converts it into Decimal coordinate format
-def dms2dd(degrees, minutes, seconds, direction):
+def dms2dd(degrees: str, minutes: str, seconds: str, direction: str) -> float:
     dd: float = float(degrees) + float(minutes) / 60 + float(seconds) / 360
     if direction == "W" or direction == "S":
         dd *= -1
@@ -22,22 +32,22 @@ def dms2dd(degrees, minutes, seconds, direction):
 # this will parse the Degrees, Minutes, Seconds coordinate format
 # into its components and pass it into dms2dd to return decimal
 # coordinates
-def parse_dms(dms):
+def parse_dms(dms: str) -> float:
     # Parsing
     parts = re.split('[^\d\w]+', dms)
     lat = dms2dd(parts[0], parts[1], parts[2] + "." + parts[3], parts[4])
     return lat
 
 
-def rid(stp):
+def rid(stp: str) -> str:
     while "=" in stp:
         stp = stp[1:]
     return stp[1:]
 
 
-args = len(sys.argv) - 1
+args: int = len(sys.argv) - 1
 # Reads in flags in terminal --clean will remove all TIF after ns to save space
-largeFlag, cleanFlag = 0, 0
+cleanFlag: int = 0
 if args > 0:
     for a in range(1, args + 1):
         if sys.argv[a] == "--clean":
@@ -48,14 +58,13 @@ if args > 0:
 # type
 # use --large to fix errors when compiling larger directories
 
-fi = ""
-arr = ""
-meta = ""
+fi: str = ""
+arr: str = ""
+meta: str = ""
 depth: int = 0
 
 # Goes through each files in directory in order and adds it to array
 for root, dirs, files in os.walk(os.getcwd()):
-    dirs.sort()
     files.sort()
     for f in files:
         if f.endswith(".TIF"):
@@ -69,44 +78,40 @@ for root, dirs, files in os.walk(os.getcwd()):
             meta = f
 # Reads in metadata from .TXT file, if not found moves on
 
-f = fi[:-13]
-
-# Initialize variables
-UL_CORNER_LAT, UL_CORNER_LON, UR_CORNER_LON, LL_CORNER_LON, UR_CORNER_LAT, LL_CORNER_LAT, LR_CORNER_LAT,\
-    LR_CORNER_LON, sensorAngle, sunAzimuth, sunelevation, endgroup = "", "", "", "", "", "", "", "", "", "", "", ""
+f: str = fi[:-13]
 
 # If .TXT file was found, parse
 if meta != "":
     openMetaFile = open(meta, "r")
-    metaData = openMetaFile.read()
-    splitted = metaData.split("\n")
+    metaData: str = openMetaFile.read()
+    splitted: str = metaData.split("\n")
 
     # goes through each line in metadata and tries to find keywords
     for lines in splitted:
         if "PRODUCT_LL_CORNER_LAT" in lines:
-            LL_CORNER_LAT = lines
+            LL_CORNER_LAT: str = lines
         elif "PRODUCT_LL_CORNER_LON" in lines:
-            LL_CORNER_LON = lines
+            LL_CORNER_LON :str = lines
         elif "PRODUCT_UR_CORNER_LON" in lines:
-            UR_CORNER_LON = lines
+            UR_CORNER_LON: str = lines
         elif "PRODUCT_UR_CORNER_LAT" in lines:
-            UR_CORNER_LAT = lines
+            UR_CORNER_LAT: str = lines
         elif "PRODUCT_LR_CORNER_LON" in lines:
-            LR_CORNER_LON = lines
+            LR_CORNER_LON: str = lines
         elif "PRODUCT_LR_CORNER_LAT" in lines:
-            LR_CORNER_LAT = lines
+            LR_CORNER_LAT: str = lines
         elif "PRODUCT_UL_CORNER_LAT" in lines:
-            UL_CORNER_LAT = lines
+            UL_CORNER_LAT: str = lines
         elif "PRODUCT_UL_CORNER_LON" in lines:
-            UL_CORNER_LON = lines
+            UL_CORNER_LON: str = lines
         elif "SENSOR_LOOK_ANGLE" in lines:
-            sensorAngle = lines
+            sensorAngle: str = lines
         elif "SUN_AZIMUTH" in lines:
-            sunAzimuth = lines
+            sunAzimuth: str = lines
         elif "SUN_ELEVATION" in lines:
-            sunelevation = lines
+            sunelevation: str = lines
         elif "CORRECTIONS" in lines:
-            endgroup = lines
+            endgroup: str = lines
     # gets rid of spaces in front
     UL_CORNER_LAT, UL_CORNER_LON = rid(UL_CORNER_LAT), rid(UL_CORNER_LON)
     UR_CORNER_LAT, UR_CORNER_LON = rid(UR_CORNER_LAT), rid(UR_CORNER_LON)
@@ -124,7 +129,7 @@ os.system("gdal_translate -of netcdf final.vrt final.nc")
 
 # Opens up the file and reads in dimensions
 openfiled = netCDF4.Dataset("final.nc", "r")
-arr = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size),dtype="u2")
+arr = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size), dtype="u2")
 
 print("Extracting:")
 s: int = 0
@@ -134,7 +139,7 @@ nf = netCDF4.Dataset(f + ".nc", "w", format="NETCDF4")
 
 print("0...", end="")
 for a in range(1, depth):
-    # Prints current percentage done
+    # prints current percentage done
     b = int(round(a * 100 / depth+5.1, -1))
     if b % 10 == 0 and b != s:
         s = b
@@ -202,7 +207,7 @@ if meta != "":
         print("100", end="", flush=True)
     except ValueError:
         print("Undefined Values")
-
+        os.system("")
     os.system("rm -f final.*")
     if cleanFlag == 1:
         os.system("rm -f *.TIF")
