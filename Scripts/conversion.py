@@ -124,7 +124,7 @@ os.system("gdal_translate -of netcdf final.vrt final.nc")
 
 # Opens up the file and reads in dimensions
 openfiled = netCDF4.Dataset("final.nc", "r")
-arr = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size))
+arr = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size),dtype="u2")
 
 print("Extracting:")
 s: int = 0
