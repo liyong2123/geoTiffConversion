@@ -3,11 +3,22 @@ import sys
 import os
 import re
 import numpy as np
-
+import timeit
 # Required Libraries:
 # gdal
 # conda
 # nco
+
+class CodeTimer:
+    def __init__(self, name=None):
+        self.name = " '"  + name + "'" if name else ''
+
+    def __enter__(self):
+        self.start = timeit.default_timer()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.took = (timeit.default_timer() - self.start) * 1000.0
+        print('Code block' + self.name + ' took: ' + str(self.took) + ' ms')
 
 
 # Takes in standard Degrees, Minutes, Seconds coordinate format and
@@ -30,9 +41,8 @@ def parse_dms(dms: str) -> float:
 
 
 def rid(stp: str) -> str:
-    while "=" in stp:
-        stp = stp[1:]
-    return stp[1:]
+    inx: int = stp.index("=")
+    return stp[inx + 2:]
 
 
 args: int = len(sys.argv) - 1
@@ -69,7 +79,6 @@ for root, dirs, files in os.walk(os.getcwd()):
 # Reads in metadata from .TXT file, if not found moves on
 
 f: str = fi[:-13]
-
 # If .TXT file was found, parse
 if meta != "":
     openMetaFile = open(meta, "r")
@@ -111,7 +120,7 @@ if meta != "":
     sensorAngle = sensorAngle[24:]
 
 print("Linking:")
-os.system("gdalbuildvrt -separate final.vrt " + arr)
+os.system("gdalbuildvrt -separate final.vrt %s" % arr)
 print("Merging: ")
 
 
@@ -119,33 +128,40 @@ os.system("gdal_translate -of netcdf --config GDAL_CACHEMAX 500 final.vrt final.
 
 # Opens up the file and reads in dimensions
 openfiled = netCDF4.Dataset("final.nc", "r")
-arr = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size), dtype="u2")
+
+xc = openfiled.dimensions["x"].size
+yc = openfiled.dimensions["y"].size
 
 print("Extracting:")
 s: int = 0
 
-#Create new file
-nf = netCDF4.Dataset(f + ".nc", "w", format="NETCDF4")
+arr = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size), dtype="u2")
+
+# Create new file
+nf = netCDF4.Dataset("%s.nc" % f, "w", format="NETCDF4")
 
 print("0...", end="")
-a: int = 1
-for a in range(1, depth):
-    # prints current percentage done
-    b: int = int(round(a * 100 / depth+5.1, -1))
-    if b % 10 == 0 and b != s:
-        s: int = b
-        print(str(b) + "...", end="", flush=True)
-    # Gets all the bands and puts them into numpy array
-    arr[a, :, :] = openfiled.variables["Band"+str(a)][:]
-    # This is for reorienting the array
-    # arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
+a: int = 0
+with CodeTimer('loop2'):
+    while a <= (depth - 1):
+        # prints current percentage done
+        b: int = int(round(a * 100 / depth+5.1, -1))
+        if b % 10 == 0 and b != s:
+            s: int = b
+            print("%s..." % str(b), end="", flush=True)
+        # Gets all the bands and puts them into numpy array
+        arr[a, :, :] = openfiled.variables["Band%s" % str(a + 1)][:]
+        a = a + 1
+        # This is for reorienting the array
+        # arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
+
 
 # Debugging
 print("Done loading data")
-print("Number of Bands: " + str(len(arr)), flush=True)
-print("x: " + str(len(arr[0][0])), flush=True)
-print("y: " + str(len(arr[0])), flush=True)
-print("Array Size: "+str(arr.shape))
+print("Number of Bands: %s" + str(depth), flush=True)
+print("x: %s" % str(xc), flush=True)
+print("y: %s" % str(yc), flush=True)
+print("Array Size: %s" % str(arr.shape))
 print("Adding Data:")
 
 # if the directory had a .TXT file it will simply add the data from the file
@@ -153,13 +169,13 @@ print("Adding Data:")
 print("0...", end="", flush=True)
 # Creates new dimensions from opened .nc file data
 depthDim = nf.createDimension('Bands', depth)
-xlen = nf.createDimension("x", len(arr[0][0]))
-ylen = nf.createDimension("y", len(arr[0]))
+xlen = nf.createDimension("x", xc)
+ylen = nf.createDimension("y", yc)
 
 # Creates new variable for the data/array to bee store
 data = nf.createVariable("Data", "u2", ('Bands', 'y', 'x'))
 # Adds metadata for the Variable
-data.long_name = 'Intensity of Light in a given band and at a given x and y'
+data.long_name = 'Hyper-Spectral Bands'
 data.standard_name = "3D Array With Bands, X, and Y"
 data.grid_mapping = 'crs'
 data.units = "Intensity"
