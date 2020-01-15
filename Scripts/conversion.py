@@ -115,7 +115,7 @@ os.system("gdalbuildvrt -separate final.vrt " + arr)
 print("Merging: ")
 
 
-os.system("gdal_translate -of netcdf final.vrt final.nc")
+os.system("gdal_translate -of netcdf --config GDAL_CACHEMAX 500 final.vrt final.nc")
 
 # Opens up the file and reads in dimensions
 openfiled = netCDF4.Dataset("final.nc", "r")
@@ -128,11 +128,12 @@ s: int = 0
 nf = netCDF4.Dataset(f + ".nc", "w", format="NETCDF4")
 
 print("0...", end="")
+a: int = 1
 for a in range(1, depth):
     # prints current percentage done
-    b = int(round(a * 100 / depth+5.1, -1))
+    b: int = int(round(a * 100 / depth+5.1, -1))
     if b % 10 == 0 and b != s:
-        s = b
+        s: int = b
         print(str(b) + "...", end="", flush=True)
     # Gets all the bands and puts them into numpy array
     arr[a, :, :] = openfiled.variables["Band"+str(a)][:]
