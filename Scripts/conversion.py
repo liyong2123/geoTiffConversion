@@ -9,17 +9,6 @@ import timeit
 # conda
 # nco
 
-class CodeTimer:
-    def __init__(self, name=None):
-        self.name = " '"  + name + "'" if name else ''
-
-    def __enter__(self):
-        self.start = timeit.default_timer()
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.took = (timeit.default_timer() - self.start) * 1000.0
-        print('Code block' + self.name + ' took: ' + str(self.took) + ' ms')
-
 
 # Takes in standard Degrees, Minutes, Seconds coordinate format and
 # converts it into Decimal coordinate format
@@ -142,18 +131,17 @@ nf = netCDF4.Dataset("%s.nc" % f, "w", format="NETCDF4")
 
 print("0...", end="")
 a: int = 0
-with CodeTimer('loop2'):
-    while a <= (depth - 1):
-        # prints current percentage done
-        b: int = int(round(a * 100 / depth+5.1, -1))
-        if b % 10 == 0 and b != s:
-            s: int = b
-            print("%s..." % str(b), end="", flush=True)
-        # Gets all the bands and puts them into numpy array
-        arr[a, :, :] = openfiled.variables["Band%s" % str(a + 1)][:]
-        a = a + 1
-        # This is for reorienting the array
-        # arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
+while a <= (depth - 1):
+    # prints current percentage done
+    b: int = int(round(a * 100 / depth+5.1, -1))
+    if b % 10 == 0 and b != s:
+        s: int = b
+        print("%s..." % str(b), end="", flush=True)
+    # Gets all the bands and puts them into numpy array
+    arr[a, :, :] = openfiled.variables["Band%s" % str(a + 1)][:]
+    a = a + 1
+    # This is for reorienting the array
+    # arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
 
 
 # Debugging
