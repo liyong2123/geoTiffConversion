@@ -10,16 +10,6 @@ import numpy as np
 # nco
 
 
-def suppress_stdout():
-    with open(os.devnull, "w") as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        try:
-            yield
-        finally:
-            sys.stdout = old_stdout
-
-
 # Takes in standard Degrees, Minutes, Seconds coordinate format and
 # converts it into Decimal coordinate format
 def dms2dd(degrees: str, minutes: str, seconds: str, direction: str) -> float:
