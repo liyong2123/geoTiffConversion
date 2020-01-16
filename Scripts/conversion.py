@@ -3,7 +3,7 @@ import sys
 import os
 import re
 import numpy as np
-import timeit
+
 # Required Libraries:
 # gdal
 # conda
@@ -72,14 +72,14 @@ f: str = fi[:-13]
 if meta != "":
     openMetaFile = open(meta, "r")
     metaData: str = openMetaFile.read()
-    splitted: str = metaData.split("\n")
+    splitted: list = metaData.split("\n")
 
     # goes through each line in metadata and tries to find keywords
     for lines in splitted:
         if "PRODUCT_LL_CORNER_LAT" in lines:
             LL_CORNER_LAT: str = lines
         elif "PRODUCT_LL_CORNER_LON" in lines:
-            LL_CORNER_LON :str = lines
+            LL_CORNER_LON: str = lines
         elif "PRODUCT_UR_CORNER_LON" in lines:
             UR_CORNER_LON: str = lines
         elif "PRODUCT_UR_CORNER_LAT" in lines:
@@ -100,6 +100,8 @@ if meta != "":
             sunelevation: str = lines
         elif "CORRECTIONS" in lines:
             endgroup: str = lines
+        elif "GRID_CELL_SIZE" in lines:
+            grid_size: str = lines
     # gets rid of spaces in front
     UL_CORNER_LAT, UL_CORNER_LON = rid(UL_CORNER_LAT), rid(UL_CORNER_LON)
     UR_CORNER_LAT, UR_CORNER_LON = rid(UR_CORNER_LAT), rid(UR_CORNER_LON)
@@ -107,6 +109,7 @@ if meta != "":
     LR_CORNER_LAT, LR_CORNER_LON = rid(LR_CORNER_LAT), rid(LR_CORNER_LON)
     sunelevation, sunAzimuth, endgroup = rid(sunelevation), rid(sunAzimuth), rid(endgroup)
     sensorAngle = sensorAngle[24:]
+    grid_size = rid(grid_size)
 
 print("Linking:")
 os.system("gdalbuildvrt -separate final.vrt %s" % arr)
@@ -124,7 +127,7 @@ yc = openfiled.dimensions["y"].size
 print("Extracting:")
 s: int = 0
 
-arr = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size), dtype="u2")
+arr1 = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size), dtype="u2")
 
 # Create new file
 nf = netCDF4.Dataset("%s.nc" % f, "w", format="NETCDF4")
@@ -138,7 +141,7 @@ while a <= (depth - 1):
         s: int = b
         print("%s..." % str(b), end="", flush=True)
     # Gets all the bands and puts them into numpy array
-    arr[a, :, :] = openfiled.variables["Band%s" % str(a + 1)][:]
+    arr1[a, :, :] = openfiled.variables["Band%s" % str(a + 1)][:]
     a = a + 1
     # This is for reorienting the array
     # arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
@@ -146,10 +149,10 @@ while a <= (depth - 1):
 
 # Debugging
 print("Done loading data")
-print("Number of Bands: %s" + str(depth), flush=True)
+print("Number of Bands: %s" % str(depth), flush=True)
 print("x: %s" % str(xc), flush=True)
 print("y: %s" % str(yc), flush=True)
-print("Array Size: %s" % str(arr.shape))
+print("Array Size: %s" % str(arr1.shape))
 print("Adding Data:")
 
 # if the directory had a .TXT file it will simply add the data from the file
@@ -169,7 +172,7 @@ data.grid_mapping = 'crs'
 data.units = "Intensity"
 data.set_auto_maskandscale(False)
 # Adds Data
-data[:, :, :] = arr[:, :, :]
+data[:, :, :] = arr1[:, :, :]
 nf.close()
 # Adds metadata using ncatted
 if meta != "":
@@ -199,6 +202,7 @@ if meta != "":
         os.system("ncatted -O -a Sun_Elevation,global,a,f," + sunelevation + " " + f + ".nc " + f + ".nc")
         print("90...", end="", flush=True)
         os.system("ncatted -O -a End_Group,global,a,c," + endgroup + " " + f + ".nc " + f + ".nc")
+        os.system("ncatted -O -a Grid_Cell_Size,global,a,f,%s %s.nc %s.nc" % (grid_size, f, f))
         print("100", end="", flush=True)
     except ValueError:
         print("Undefined Values")

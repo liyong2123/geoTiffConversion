@@ -37,10 +37,11 @@ for c in range(0, depth):
 # Create new plot and insert data
 fig, ax = plt.subplots(figsize=(6, 6))
 # Uses the RGB bands, 29, 21, 16
-ep.plot_rgb(arrmain, rgb=(29, 21, 16), ax=ax, title="HyperSpectral Image")
+ep.plot_rgb(arrmain, rgb=(40, 21, 16), ax=ax, title="HyperSpectral Image")
+fig.tight_layout()
 
 
-# Function event listenter, once detectede right click, will generat nwe graph
+# Function event listenter, once detected right click, will generat nwe graph
 def onclick(event):
     if event.xdata is not None and event.ydata is not None and event.button == 3:
         # (x,y) from click
