@@ -10,7 +10,6 @@ import numpy as np
 # nco
 #To use, cd to directory with .nc file, then "python ../Folder1/yourprogramlocation/conversion.py"
 
-
 # Takes in standard Degrees, Minutes, Seconds coordinate format and
 # converts it into Decimal coordinate format
 def dms2dd(degrees: str, minutes: str, seconds: str, direction: str) -> float:

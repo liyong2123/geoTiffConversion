@@ -28,7 +28,6 @@ def learnmain():
 
     #gets the array from netCDF file and rotates 180, and flips
     arrtemp = ds.variables["Data"][:]
-    print(arrtemp.shape)
     arrmain = np.zeros(ds.variables["Data"].shape)
     # Apply transformation to the arrays so it's right orientation
     for c in range(0, input_features):
