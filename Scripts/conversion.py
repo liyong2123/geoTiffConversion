@@ -29,7 +29,7 @@ def parse_dms(dms: str) -> float:
     return lat
 
 
-def notxtfound(f):
+def notxtfound(cleanFlag):
     print("Metadata TXT not found, manually parsing from TIFF")
     for root, dirs, files in os.walk(os.getcwd()):
         dirs.sort()
@@ -247,6 +247,8 @@ def main():
         try:
             #This will go and call system commands that will add the metadata according to data parsed.
             print("20...", end="", flush=True)
+            # ncatted -O -a ... is just a standard library call, "global" is for the group that the metadata is in
+            #, and a is for appending to existing data, c is for string data and f is for float data
             os.system(
                 "ncatted -O -a Upper_Left_Corner,global,a,c," + "\"(" + UL_CORNER_LAT + "," + UL_CORNER_LON + ")\" " + f +
                 ".nc " + f + ".nc")
@@ -282,6 +284,6 @@ def main():
 
     # if not .txt exists, then opens geoTIFF and reads metadata then parses it
     else:
-        notxtfound(f)
+        notxtfound(cleanFlag)
 if __name__ == "__main__":
     main()
