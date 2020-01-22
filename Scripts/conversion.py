@@ -29,7 +29,7 @@ def parse_dms(dms: str) -> float:
     return lat
 
 
-def notxtfound(cleanFlag):
+def notxtfound(cleanFlag) -> None:
     print("Metadata TXT not found, manually parsing from TIFF")
     for root, dirs, files in os.walk(os.getcwd()):
         dirs.sort()
