@@ -34,6 +34,10 @@ def rid(stp: str) -> str:
     return stp[inx + 2:]
 
 def findFile():
+    arr: str = ""
+    meta: str = ""
+    fi: str = ""
+    depth: int = 0
     for root, dirs, files in os.walk(os.getcwd()):
         files.sort()
         for f in files:
@@ -46,7 +50,7 @@ def findFile():
                     arr = arr + " " + f
             elif f.endswith(".TXT"):
                 meta = f
-    return arr, fi, meta
+    return arr, fi, meta, depth
 
 
 def main():
@@ -66,8 +70,8 @@ def main():
     arr: str = ""
     meta: str = ""
     depth: int = 0
-
-    arr, fi, meta = findFile()
+    #Finds file names and total bands
+    arr, fi, meta, depth = findFile()
     f: str = fi[:-13]
 
     # Goes through each files in directory in order and adds it to array
@@ -151,17 +155,9 @@ def main():
         # Gets all the bands and puts them into numpy array
         arr1[a, :, :] = openfiled.variables["Band%s" % str(a + 1)][:]
         a = a + 1
-        # This is for reorienting the array
-        # arr[a, :, :] = np.fliplr(np.rot90(openfiled.variables["Band" + str(a)][:], 2))
-
 
     # Debugging
-    print("Done loading data")
-    print("Number of Bands: %s" % str(depth), flush=True)
-    print("x: %s" % str(xc), flush=True)
-    print("y: %s" % str(yc), flush=True)
-    print("Array Size: %s" % str(arr1.shape))
-    print("Adding Data:")
+    print("Done loading data \n Number of Bands: %s\nx: %s\ny: %s\nArray Size: %s\nAdding Data:" %(str(depth), str(xc), str(yc), str(arr1.shape)), flush=True)
 
     # if the directory had a .TXT file it will simply add the data from the file
 
