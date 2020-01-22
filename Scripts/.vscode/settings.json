@@ -1,6 +1,6 @@
 {
-    "python.pythonPath": "/Users/yongli/anaconda3/envs/netcdf/bin/python"
-"terminal.integrated.env.linux": {
+    "python.pythonPath": "/usr/local/bin/python",
+    "terminal.integrated.env.linux": {
     "PYTHONPATH": ""
   }
 

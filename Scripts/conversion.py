@@ -8,6 +8,7 @@ import numpy as np
 # gdal
 # conda
 # nco
+#To use, cd to directory with .nc file, then "python ../Folder1/yourprogramlocation/conversion.py"
 
 
 # Takes in standard Degrees, Minutes, Seconds coordinate format and
@@ -102,7 +103,7 @@ if meta != "":
             endgroup: str = lines
         elif "GRID_CELL_SIZE" in lines:
             grid_size: str = lines
-    # gets rid of spaces in front
+    # gets rid of spaces in front, leaving only data
     UL_CORNER_LAT, UL_CORNER_LON = rid(UL_CORNER_LAT), rid(UL_CORNER_LON)
     UR_CORNER_LAT, UR_CORNER_LON = rid(UR_CORNER_LAT), rid(UR_CORNER_LON)
     LL_CORNER_LAT, LL_CORNER_LON = rid(LL_CORNER_LAT), rid(LL_CORNER_LON)
@@ -112,10 +113,11 @@ if meta != "":
     grid_size = rid(grid_size)
 
 print("Linking:")
+#Links all the tif files in the directory into a vrt file
 os.system("gdalbuildvrt -separate final.vrt %s" % arr)
 print("Merging: ")
 
-
+#turns the linked vrt file into a netcdf file, with 242 variables which we will merge
 os.system("gdal_translate -of netcdf --config GDAL_CACHEMAX 500 final.vrt final.nc")
 
 # Opens up the file and reads in dimensions
@@ -127,6 +129,7 @@ yc = openfiled.dimensions["y"].size
 print("Extracting:")
 s: int = 0
 
+#intitalizes the array in shape of (Bands, Y, X)
 arr1 = np.zeros((depth, openfiled.dimensions["y"].size, openfiled.dimensions["x"].size), dtype="u2")
 
 # Create new file
@@ -134,6 +137,7 @@ nf = netCDF4.Dataset("%s.nc" % f, "w", format="NETCDF4")
 
 print("0...", end="")
 a: int = 0
+#runs through each band in the netCDF file, combines it into single 3D array and puts it into single variable in the new netCDF file
 while a <= (depth - 1):
     # prints current percentage done
     b: int = int(round(a * 100 / depth+5.1, -1))
@@ -178,6 +182,7 @@ nf.close()
 if meta != "":
     print("10...", end="", flush=True)
     try:
+        #This will go and call system commands that will add the metadata according to data parsed.
         print("20...", end="", flush=True)
         os.system(
             "ncatted -O -a Upper_Left_Corner,global,a,c," + "\"(" + UL_CORNER_LAT + "," + UL_CORNER_LON + ")\" " + f +

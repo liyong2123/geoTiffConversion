@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 import os
 import earthpy.plot as ep
 
+#To use, cd to directory with .nc file, then "python ../Folder1/yourprogramlocation/ncviewer.py"
+
 xaxis, ds = [], ""
 # Finds the .nc file in directory
 for root, dirs, files in os.walk(os.getcwd()):
