@@ -9,6 +9,7 @@ Required for All:
 * Matplotlib
 * Earthpy
 * Numpy
+
 Required for Machine Learning Programs:
 * Tensorflow
 * Keras
