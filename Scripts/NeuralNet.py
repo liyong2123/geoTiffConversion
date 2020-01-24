@@ -5,7 +5,7 @@ import numpy as np
 import plotly.graph_objects as go
 import earthpy.plot as ep
 from keras.models import Model
-from Neuro2 import create_model
+from trainer import create_model
 
 #main function
 def learnmain():
@@ -53,12 +53,33 @@ def learnmain():
             #
             dataPred = np.array([dataPred])
             pred = model.predict(dataPred)
-            if pred[0][0]>.9:
-                print("Water")
-            elif pred[0][1]>.9:
-                print("Land")
-            else:
+            #print(pred)
+            if pred[0][0]>.5:
+                print("Rooftop")
+                print(int(pred[0][0]*100))
+            elif pred[0][1]>.5:
+                print("Trees")
+                print(int(pred[0][1]*100))
+            elif pred[0][2]>.5:
+                print("Parking Lot")
+                print(int(pred[0][2]*100))
+            elif pred[0][3]>.5:
+                print("Shallow Water")
+                print(int(pred[0][3]*100))
+            elif pred[0][4]>.5:
+                print("Field")
+                print(int(pred[0][4]*100))
+            elif pred[0][5]>.5:
+                print("Deep Water")
+                print(int(pred[0][5]*100))
+            elif pred[0][6]>.5:
+                print("Road")
+                print(int(pred[0][6]*100))
+            elif pred[0][7]>.5:
                 print("No Data")
+                print(int(pred[0][7]*100))
+            else:
+                print(pred)
             #Gets data from the click location (x,y) for all bands
             for b in range(1, input_features):
                 data = arrmain[b][x][y]
@@ -82,4 +103,3 @@ def learnmain():
 
 if __name__ == "__main__":
     learnmain()
-    
